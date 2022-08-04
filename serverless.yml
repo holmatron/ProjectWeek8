@@ -67,6 +67,11 @@ functions:
 
   getKanye:
     handler: kanyeAPI_vara.handler
+    events:
+      - http:
+          path: /kanye
+          method: get
+          integration: lambda
 
   # events:
   #   handler: kanyeSNS_vara.handler
@@ -123,7 +128,7 @@ resources:
     emailSubscription:
       Type: AWS::SNS::Subscription
       Properties:
-        Endpoint: "email@email"
+        Endpoint: ""
         Protocol: "email"
         TopicArn: "arn:aws:sns:us-east-2:235920682125:dev-KanyeTopicTwo"
 
