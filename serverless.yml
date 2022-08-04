@@ -25,7 +25,7 @@ provider:
           Resource:
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.POSTS_TABLE}"
             - "arn:aws:lambda:${self:provider.region}"
-            - "arn:aws:sns:${self:provider.region}:235920682125:KanyeTopicTwo"
+            #- "arn:aws:sns:${self:provider.region}:235920682125:Kanye-topic"
 
 functions:
   createPost:
@@ -66,7 +66,15 @@ functions:
           method: delete
 
   getKanye:
-    handler: kanyeAPI_vara.handler
+    handler: kanyeAPI_user.handler
+    # events:
+    #   - http:
+    #       path: /kanye
+    #       method: get
+    #       integration: lambda
+
+  getKanyeJSON:
+    handler: kanyeJSON.handler
     events:
       - http:
           path: /kanye
@@ -74,21 +82,21 @@ functions:
           integration: lambda
 
   # events:
-  #   handler: kanyeSNS_vara.handler
+  #   handler: kanyeSNS.handler
   #   Trigger:
   #     Type: EventBridgeRule
   #     Properties:
   #       Pattern:
   #         source:
-  #           - custom.kanyeSNS_vara
+  #           - custom.kanyeSNS
 
   # publishToSNS:
-  #   handler: kanyeSNS_vara.handler
+  #   handler: kanyeSNS.handler
   #   events:
-  #     - sns: kanyeSNS_vara
+  #     - sns: kanyeSNS
   #     - http:
   #         method: get
-  #         path: kanyeSNS_vara
+  #         path: kanyeSNS
   #     - schedule:
   #       rate:
   #         rate(2 minutes)
@@ -114,7 +122,7 @@ resources:
 
     KanyeTopicTwo:
       Type: AWS::SNS::Topic
-      #Handler: kanyeSNS_vara.handler
+      #Handler: kanyeSNS.handler
       Properties:
         TopicName: "${opt:stage}-KanyeTopicTwo"
         DisplayName: "The topic for KanyeCat-mash"
@@ -128,7 +136,7 @@ resources:
     emailSubscription:
       Type: AWS::SNS::Subscription
       Properties:
-        Endpoint: ""
+        Endpoint: "email@email"
         Protocol: "email"
         TopicArn: "arn:aws:sns:us-east-2:235920682125:dev-KanyeTopicTwo"
 
