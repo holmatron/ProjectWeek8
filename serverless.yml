@@ -1,0 +1,131 @@
+service: kanyesls
+
+custom:
+  settings:
+    POSTS_TABLE: posts
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  environment: ${self:custom.settings}
+  region: us-east-2
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - sns:Publish
+            - lambda:InvokeFunction
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.POSTS_TABLE}"
+            - "arn:aws:lambda:${self:provider.region}"
+            - "arn:aws:sns:${self:provider.region}:235920682125:KanyeTopicTwo"
+
+functions:
+  createPost:
+    handler: createPost.createPost
+    events:
+      - http:
+          path: /post
+          method: post
+  getAllPosts:
+    handler: getAllPosts.getAllPosts
+    events:
+      - http:
+          path: /posts
+          method: get
+  getPosts:
+    handler: getByAmount.getPosts
+    events:
+      - http:
+          path: /posts/{number}
+          method: get
+  getPost:
+    handler: getOne.getPost
+    events:
+      - http:
+          path: /post/{id}
+          method: get
+  #updatePost:
+  #handler: handler.updatePost
+  #events:
+  #- http:
+  #path: /post/{id}
+  # method: put
+  deletePost:
+    handler: deletePost.deletePost
+    events:
+      - http:
+          path: /post/{id}
+          method: delete
+
+  getKanye:
+    handler: kanyeAPI_vara.handler
+
+  # events:
+  #   handler: kanyeSNS_vara.handler
+  #   Trigger:
+  #     Type: EventBridgeRule
+  #     Properties:
+  #       Pattern:
+  #         source:
+  #           - custom.kanyeSNS_vara
+
+  # publishToSNS:
+  #   handler: kanyeSNS_vara.handler
+  #   events:
+  #     - sns: kanyeSNS_vara
+  #     - http:
+  #         method: get
+  #         path: kanyeSNS_vara
+  #     - schedule:
+  #       rate:
+  #         rate(2 minutes)
+  #enabled: false
+  #trigger:
+  #type: EventBridgeRule
+
+resources:
+  Resources:
+    PostsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.settings.POSTS_TABLE}
+
+    KanyeTopicTwo:
+      Type: AWS::SNS::Topic
+      #Handler: kanyeSNS_vara.handler
+      Properties:
+        TopicName: "${opt:stage}-KanyeTopicTwo"
+        DisplayName: "The topic for KanyeCat-mash"
+        #TopicName: ${KanyeTopicTwo}
+      # Events:
+      #   - schedule:
+      #     rate: rate(2 minutes)
+
+    ##TÄSTÄ JO LUODUN TOPICIN SUBSCRIPTION PÄÄLLE!! (mikäli luodaan uusi ylempänä, niin muokkaa subscription)
+
+    emailSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: "email@email"
+        Protocol: "email"
+        TopicArn: "arn:aws:sns:us-east-2:235920682125:dev-KanyeTopicTwo"
+
+plugins:
+  - serverless-ignore
